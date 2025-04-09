@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
-# Список для хранения данных о пациентах (временное хранилище)
+# Временное хранилище для данных о пациентах
 patients = []
 
 @app.route('/')
@@ -16,18 +16,20 @@ def schedule():
         patient_name = request.form.get('patient_name')
         disease = request.form.get('disease')
         frequency = request.form.get('frequency')
+        health_indicators = request.form.get('health_indicators')  # Новое поле для показателей здоровья
         
-        # Сохранение данных в списке
+        # Добавляем данные в список
         patients.append({
             'patient_name': patient_name,
             'disease': disease,
-            'frequency': frequency
+            'frequency': frequency,
+            'health_indicators': health_indicators
         })
         
-        # Перенаправление для избежания повторной отправки данных
+        # После сохранения перенаправляем на страницу для избежания повторной отправки
         return redirect(url_for('schedule'))
     
-    # Передача списка пациентов в шаблон при GET-запросе
+    # При GET-запросе передаём список пациентов в шаблон
     return render_template('schedule.html', patients=patients)
 
 if __name__ == '__main__':

@@ -18,6 +18,9 @@
         <label for="frequency">Периодичность опроса (в днях):</label><br>
         <input type="number" id="frequency" name="frequency" min="1" required><br><br>
 
+        <label for="health_indicators">Показатели здоровья (например, давление=120/80, температура=36.6):</label><br>
+        <input type="text" id="health_indicators" name="health_indicators" placeholder="давление=120/80, температура=36.6" required><br><br>
+
         <input type="submit" value="Сохранить">
     </form>
 
@@ -28,7 +31,8 @@
                 <li>
                     Пациент: {{ p.patient_name }} |
                     Заболевание: {{ p.disease }} |
-                    Периодичность: {{ p.frequency }} дней
+                    Периодичность: {{ p.frequency }} дней |
+                    Показатели: {{ p.health_indicators }}
                 </li>
             {% endfor %}
         </ul>
