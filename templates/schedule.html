@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Планирование мониторинга</title>
+</head>
+<body>
+    <h1>Планирование мониторинга</h1>
+
+    <!-- Форма для ввода данных о пациенте -->
+    <form method="post">
+        <label for="patient_name">Имя пациента:</label><br>
+        <input type="text" id="patient_name" name="patient_name" required><br><br>
+
+        <label for="disease">Заболевание (по которому пациент наблюдается):</label><br>
+        <input type="text" id="disease" name="disease" required><br><br>
+
+        <label for="frequency">Периодичность опроса (в днях):</label><br>
+        <input type="number" id="frequency" name="frequency" min="1" required><br><br>
+
+        <input type="submit" value="Сохранить">
+    </form>
+
+    <h2>Список запланированных мониторингов</h2>
+    {% if patients %}
+        <ul>
+            {% for p in patients %}
+                <li>
+                    Пациент: {{ p.patient_name }} |
+                    Заболевание: {{ p.disease }} |
+                    Периодичность: {{ p.frequency }} дней
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет запланированных мониторингов</p>
+    {% endif %}
+</body>
+</html>
