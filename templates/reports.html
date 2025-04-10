@@ -6,7 +6,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <!-- Навигационная панель -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
     <div class="container">
       <a class="navbar-brand" href="/">Мед. система</a>
@@ -19,15 +18,45 @@
   </nav>
   
   <div class="container">
-    <h2>Отчёты по измерениям пациентов</h2>
+    <h2>Отчёты по измерениям</h2>
+    <!-- Форма сортировки -->
+    <form method="get" action="/reports" class="mb-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="sortField" class="form-label">Сортировать по:</label>
+          <select class="form-select" id="sortField" name="sort_field">
+            <option value="default" {% if sort_field == 'default' or sort_field == '' %}selected{% endif %}>По умолчанию (Дата)</option>
+            <option value="patient_name" {% if sort_field == 'patient_name' %}selected{% endif %}>Имя</option>
+            <option value="temperature" {% if sort_field == 'temperature' %}selected{% endif %}>Температура</option>
+            <option value="systolic" {% if sort_field == 'systolic' %}selected{% endif %}>Систолическое</option>
+            <option value="diastolic" {% if sort_field == 'diastolic' %}selected{% endif %}>Диастолическое</option>
+            <option value="pulse" {% if sort_field == 'pulse' %}selected{% endif %}>Пульс</option>
+            <option value="oxygen_saturation" {% if sort_field == 'oxygen_saturation' %}selected{% endif %}>Насыщение</option>
+            <option value="timestamp" {% if sort_field == 'timestamp' %}selected{% endif %}>Дата</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="sortOrder" class="form-label">Порядок сортировки:</label>
+          <select class="form-select" id="sortOrder" name="sort_order">
+            <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>По возрастанию</option>
+            <option value="desc" {% if sort_order == 'desc' or sort_field == 'default' %}selected{% endif %}>По убыванию</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Применить</button>
+    </form>
+
+    <h3>Список измерений</h3>
     {% if readings %}
-      <table class="table table-hover">
+      <table class="table table-bordered table-hover">
         <thead>
           <tr>
             <th>Пациент</th>
-            <th>Темп. (°C)</th>
-            <th>Сист.</th>
-            <th>Диаст.</th>
+            <th>Температура (°C)</th>
+            <th>Систол.</th>
+            <th>Диастол.</th>
+            <th>Пульс</th>
+            <th>Насыщение (%)</th>
             <th>Боль в груди</th>
             <th>Дата</th>
             <th>Предупреждения</th>
@@ -40,17 +69,19 @@
               <td>{{ r.temperature }}</td>
               <td>{{ r.systolic }}</td>
               <td>{{ r.diastolic }}</td>
+              <td>{{ r.pulse }}</td>
+              <td>{{ r.oxygen_saturation }}</td>
               <td>{{ 'Да' if r.chest_pain else 'Нет' }}</td>
               <td>{{ r.timestamp }}</td>
               <td>
                 {% if r.alerts %}
                   <ul class="mb-0">
                     {% for alert in r.alerts %}
-                      <li class="text-danger" style="font-size: 0.9em;">{{ alert }}</li>
+                      <li class="text-danger small">{{ alert }}</li>
                     {% endfor %}
                   </ul>
                 {% else %}
-                  <span class="text-success">Норма</span>
+                  <span class="text-success small">Норма</span>
                 {% endif %}
               </td>
             </tr>
