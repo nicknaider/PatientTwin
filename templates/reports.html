@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отчеты по измерениям</title>
+</head>
+<body>
+    <h1>Отчеты по измерениям</h1>
+    
+    {% if reports %}
+        {% for patient, measurements in reports.items() %}
+            <h2>Пациент: {{ patient }}</h2>
+            <ul>
+                {% for m in measurements %}
+                    <li>
+                        {{ m.timestamp }} — Измерения: {{ m.measured_values }}
+                        {% if m.alerts %}
+                            <span style="color: red;">[{{ m.alerts | join(', ') }}]</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>Нет данных для отчета.</p>
+    {% endif %}
+</body>
+</html>

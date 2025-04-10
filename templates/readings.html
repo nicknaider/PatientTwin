@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Измерения пациентов</title>
+</head>
+<body>
+    <h1>Измерения пациентов</h1>
+    
+    <!-- Форма для ввода измерений -->
+    <form method="post">
+        <label for="patient_name">Имя пациента:</label><br>
+        <input type="text" id="patient_name" name="patient_name" required><br><br>
+        
+        <label for="measured_values">
+            Измеренные показатели (каждый параметр на новой строке), например:
+            <pre>давление=120/80
+температура=36.6</pre>
+        </label><br>
+        <!-- Многострочное поле ввода -->
+        <textarea id="measured_values" name="measured_values" rows="3" cols="50" 
+                  placeholder="давление=120/80
+температура=36.6"></textarea>
+        <br><br>
+        
+        <input type="submit" value="Добавить измерение">
+    </form>
+    
+    <h2>Список измерений</h2>
+    {% if readings %}
+        <ul>
+            {% for r in readings %}
+                <li>
+                    Пациент: {{ r.patient_name }} | 
+                    Дата: {{ r.timestamp }}
+                    <br>
+                    <!-- Выводим каждую строку измеренных значений на новой строке -->
+                    <strong>Измерения:</strong>
+                    <ul>
+                        {% for param_line in r.measured_values.splitlines() %}
+                            <li>{{ param_line }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет измерений</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Структурированные измерения</title>
+</head>
+<body>
+  <h1>Структурированные измерения пациентов</h1>
+  
+  <!-- Форма для ввода измерений по отдельным параметрам -->
+  <form method="post">
+    <label for="patient_name">Имя пациента:</label><br>
+    <input type="text" id="patient_name" name="patient_name" required><br><br>
+    
+    <label for="temperature">Температура (°C):</label><br>
+    <input type="number" step="0.1" id="temperature" name="temperature" required><br><br>
+    
+    <label for="systolic">Систолическое давление (мм рт. ст.):</label><br>
+    <input type="number" id="systolic" name="systolic" required><br><br>
+    
+    <label for="diastolic">Диастолическое давление (мм рт. ст.):</label><br>
+    <input type="number" id="diastolic" name="diastolic" required><br><br>
+    
+    <label>Наличие боли в груди?</label><br>
+    <input type="radio" id="chest_pain_yes" name="chest_pain" value="yes" required>
+    <label for="chest_pain_yes">Да</label><br>
+    <input type="radio" id="chest_pain_no" name="chest_pain" value="no" required>
+    <label for="chest_pain_no">Нет</label><br><br>
+    
+    <input type="submit" value="Сохранить измерение">
+  </form>
+  
+  <h2>Список измерений</h2>
+  {% if readings %}
+    <table border="1" cellpadding="5" cellspacing="0">
+      <tr>
+        <th>Пациент</th>
+        <th>Температура (°C)</th>
+        <th>Систолическое давление</th>
+        <th>Диастолическое давление</th>
+        <th>Боль в груди</th>
+        <th>Дата</th>
+        <th>Предупреждения</th>
+      </tr>
+      {% for r in readings %}
+      <tr>
+        <td>{{ r.patient_name }}</td>
+        <td>{{ r.temperature }}</td>
+        <td>{{ r.systolic }}</td>
+        <td>{{ r.diastolic }}</td>
+        <td>{{ 'Да' if r.chest_pain else 'Нет' }}</td>
+        <td>{{ r.timestamp }}</td>
+        <td>
+          {% if r.alerts %}
+            <ul>
+              {% for alert in r.alerts %}
+                <li style="color: red;">{{ alert }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Нет измерений</p>
+  {% endif %}
+</body>
+</html>
