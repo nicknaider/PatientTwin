@@ -1,45 +1,70 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Планирование мониторинга</title>
+  <meta charset="UTF-8">
+  <title>Планирование мониторинга</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>Планирование мониторинга</h1>
-
-    <!-- Форма для ввода данных о пациенте -->
-    <form method="post">
-        <label for="patient_name">Имя пациента:</label><br>
-        <input type="text" id="patient_name" name="patient_name" required><br><br>
-
-        <label for="disease">Заболевание (по которому пациент наблюдается):</label><br>
-        <input type="text" id="disease" name="disease" required><br><br>
-
-        <label for="frequency">Периодичность опроса (в днях):</label><br>
-        <input type="number" id="frequency" name="frequency" min="1" required><br><br>
-
-        <label for="health_indicators">
-            Показатели здоровья (например, давление=120/80, температура=36.6):
-        </label><br>
-        <input type="text" id="health_indicators" name="health_indicators" placeholder="давление=120/80, температура=36.6" required><br><br>
-
-        <input type="submit" value="Сохранить">
+  <!-- Навигационная панель -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+    <div class="container">
+      <a class="navbar-brand" href="/">Мед. система</a>
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link active" href="/schedule">Планирование</a></li>
+        <li class="nav-item"><a class="nav-link" href="/readings">Измерения</a></li>
+        <li class="nav-item"><a class="nav-link" href="/reports">Отчёты</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <h2>Планирование мониторинга пациентов</h2>
+    <form method="post" class="mb-4">
+      <div class="mb-3">
+        <label for="patient_name" class="form-label">Имя пациента:</label>
+        <input type="text" id="patient_name" name="patient_name" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="disease" class="form-label">Заболевание:</label>
+        <input type="text" id="disease" name="disease" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="frequency" class="form-label">Периодичность опроса (в днях):</label>
+        <input type="number" id="frequency" name="frequency" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="health_indicators" class="form-label">Показатели здоровья (кратко):</label>
+        <input type="text" id="health_indicators" name="health_indicators" class="form-control" placeholder="Напр., Давление, Т.">
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>
-
-    <h2>Список запланированных мониторингов</h2>
+    
+    <h3>Список запланированных пациентов</h3>
     {% if patients %}
-        <ul>
-            {% for p in patients %}
-                <li>
-                    Пациент: {{ p.patient_name }} |
-                    Заболевание: {{ p.disease }} |
-                    Периодичность: {{ p.frequency }} дней |
-                    Показатели: {{ p.health_indicators }}
-                </li>
-            {% endfor %}
-        </ul>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Пациент</th>
+            <th>Заболевание</th>
+            <th>Периодичность</th>
+            <th>Показатели</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in patients %}
+            <tr>
+              <td>{{ p.patient_name }}</td>
+              <td>{{ p.disease }}</td>
+              <td>{{ p.frequency }} дн.</td>
+              <td>{{ p.health_indicators }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {% else %}
-        <p>Нет запланированных мониторингов</p>
+      <p>Нет запланированных пациентов.</p>
     {% endif %}
+  </div>
 </body>
 </html>

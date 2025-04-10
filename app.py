@@ -4,12 +4,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Настройка подключения к базе данных SQLite.
+# Настройка подключения к SQLite. Файл базы "patient_twin.db" создастся в корне проекта.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///patient_twin.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Модель для пациента (Модуль A)
+# Модель пациента (для планирования мониторинга)
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_name = db.Column(db.String(80), nullable=False)
@@ -17,45 +17,34 @@ class Patient(db.Model):
     frequency = db.Column(db.Integer, nullable=False)
     health_indicators = db.Column(db.String(200), nullable=False)
 
-    def __repr__(self):
-        return f"<Patient {self.patient_name}>"
-
-# Обновлённая модель для структурированных измерений (Модуль B)
+# Модель для структурированных измерений
 class Reading(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_name = db.Column(db.String(80), nullable=False)
-    # Структурированные параметры:
-    temperature = db.Column(db.Float, nullable=True)    # температура (°C)
-    systolic = db.Column(db.Integer, nullable=True)       # систолическое давление (мм рт. ст.)
-    diastolic = db.Column(db.Integer, nullable=True)      # диастолическое давление (мм рт. ст.)
-    chest_pain = db.Column(db.Boolean, nullable=True)       # наличие боли в груди (True/False)
-    timestamp = db.Column(db.String(80), nullable=False)
-
-    def __repr__(self):
-        return f"<Reading {self.patient_name} at {self.timestamp}>"
+    temperature = db.Column(db.Float, nullable=True)    # Температура (°C)
+    systolic = db.Column(db.Integer, nullable=True)       # Систолическое давление (мм рт. ст.)
+    diastolic = db.Column(db.Integer, nullable=True)      # Диастолическое давление (мм рт. ст.)
+    chest_pain = db.Column(db.Boolean, nullable=True)     # Боль в груди (True/False)
+    timestamp = db.Column(db.String(80), nullable=False)    # Дата-время измерения
 
 # Функция для анализа структурированного измерения
 def analyze_structured_reading(reading):
     alerts = []
-    # Анализ температуры
     if reading.temperature is not None and reading.temperature > 37.0:
-        alerts.append("Высокая температура")
-    # Анализ систолического давления
+        alerts.append("Высокая т.")
     if reading.systolic is not None and reading.systolic > 140:
-        alerts.append("Высокое систолическое давление")
-    # Анализ диастолического давления
+        alerts.append("Сист. >140")
     if reading.diastolic is not None and reading.diastolic > 90:
-        alerts.append("Высокое диастолическое давление")
-    # Анализ симптома с вопросом "Да/Нет" (например, боль в груди)
+        alerts.append("Диаст. >90")
     if reading.chest_pain:
         alerts.append("Боль в груди")
     return alerts
 
 @app.route('/')
 def home():
-    return 'Добро пожаловать в модуль А: Базовая автоматизация бизнес-процесса'
+    return render_template("home.html")
 
-# Маршрут для планирования мониторинга (Модуль A)
+# Окно планирования мониторинга
 @app.route('/schedule', methods=['GET', 'POST'])
 def schedule():
     if request.method == 'POST':
@@ -72,18 +61,16 @@ def schedule():
         )
         db.session.add(new_patient)
         db.session.commit()
-        
         return redirect(url_for('schedule'))
     
     patients = Patient.query.all()
     return render_template('schedule.html', patients=patients)
 
-# Новый маршрут для ввода структурированных измерений (Модуль B)
-@app.route('/structured_readings', methods=['GET', 'POST'])
-def structured_readings():
+# Страница для ввода структурированных измерений
+@app.route('/readings', methods=['GET', 'POST'])
+def readings_view():
     if request.method == 'POST':
         patient_name = request.form.get('patient_name')
-        # Получение числовых значений; преобразуем в нужный тип, при ошибке записываем None
         try:
             temperature = float(request.form.get('temperature'))
         except (ValueError, TypeError):
@@ -96,8 +83,8 @@ def structured_readings():
             diastolic = int(request.form.get('diastolic'))
         except (ValueError, TypeError):
             diastolic = None
-        chest_pain_value = request.form.get('chest_pain')  # должно быть "yes" или "no"
-        chest_pain = True if chest_pain_value == "yes" else False
+        chest_pain_val = request.form.get('chest_pain')
+        chest_pain = True if chest_pain_val == 'yes' else False
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_reading = Reading(
@@ -110,17 +97,22 @@ def structured_readings():
         )
         db.session.add(new_reading)
         db.session.commit()
-
-        return redirect(url_for('structured_readings'))
-
+        return redirect(url_for('readings_view'))
+    
     readings = Reading.query.all()
-    # Для каждого измерения определим предупреждения
     for r in readings:
         r.alerts = analyze_structured_reading(r)
-    return render_template("structured_readings.html", readings=readings)
+    return render_template("readings.html", readings=readings)
+
+# Страница отчётов
+@app.route('/reports')
+def reports():
+    readings = Reading.query.all()
+    for r in readings:
+        r.alerts = analyze_structured_reading(r)
+    return render_template("reports.html", readings=readings)
 
 if __name__ == '__main__':
     with app.app_context():
-        # При первом запуске создаются таблицы в базе (если файла patient_twin.db ещё нет)
         db.create_all()
     app.run(debug=True)
