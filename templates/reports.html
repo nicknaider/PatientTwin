@@ -2,13 +2,17 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Отчёты</title>
+  <title>Отчёты по измерениям</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .detail-btn { font-size: 0.9rem; }
+    .input-group-text { color: rgba(0, 0, 0, 0.7); font-weight: 500; }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
     <div class="container">
-      <a class="navbar-brand" href="/">Мед. система</a>
+      <a class="navbar-brand" href="/">Медицинская система</a>
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link" href="/schedule">Планирование</a></li>
         <li class="nav-item"><a class="nav-link" href="/readings">Измерения</a></li>
@@ -19,70 +23,143 @@
   
   <div class="container">
     <h2>Отчёты по измерениям</h2>
-    <!-- Форма сортировки -->
-    <form method="get" action="/reports" class="mb-4">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label for="sortField" class="form-label">Сортировать по:</label>
-          <select class="form-select" id="sortField" name="sort_field">
-            <option value="default" {% if sort_field == 'default' or sort_field == '' %}selected{% endif %}>По умолчанию (Дата)</option>
-            <option value="patient_name" {% if sort_field == 'patient_name' %}selected{% endif %}>Имя</option>
-            <option value="temperature" {% if sort_field == 'temperature' %}selected{% endif %}>Температура</option>
-            <option value="systolic" {% if sort_field == 'systolic' %}selected{% endif %}>Систолическое</option>
-            <option value="diastolic" {% if sort_field == 'diastolic' %}selected{% endif %}>Диастолическое</option>
-            <option value="pulse" {% if sort_field == 'pulse' %}selected{% endif %}>Пульс</option>
-            <option value="oxygen_saturation" {% if sort_field == 'oxygen_saturation' %}selected{% endif %}>Насыщение</option>
-            <option value="timestamp" {% if sort_field == 'timestamp' %}selected{% endif %}>Дата</option>
-          </select>
+    
+    <!-- Форма разбита на две строки по 3 элемента -->
+    <form method="get" action="/reports" class="mb-3" id="reportForm">
+      <!-- Первая строка: Поиск, Дата От и Дата До -->
+      <div class="row align-items-end g-2">
+        <div class="col-md-4">
+          <input type="text" name="search" id="searchInput" class="form-control" placeholder="Поиск по ФИО" value="{{ search }}">
         </div>
-        <div class="col-md-6">
-          <label for="sortOrder" class="form-label">Порядок сортировки:</label>
-          <select class="form-select" id="sortOrder" name="sort_order">
-            <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>По возрастанию</option>
-            <option value="desc" {% if sort_order == 'desc' or sort_field == 'default' %}selected{% endif %}>По убыванию</option>
-          </select>
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text">От</span>
+            <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text">До</span>
+            <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+          </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary mt-3">Применить</button>
+      <!-- Вторая строка: Сортировка и Кнопка "Применить" -->
+      <div class="row align-items-end g-2 mt-2">
+        <div class="col-md-4">
+          <select class="form-select" name="sort_field">
+            <option value="default" {% if sort_field=='default' or sort_field=='' %}selected{% endif %}>По умолчанию (Дата)</option>
+            <option value="patient_name" {% if sort_field=='patient_name' %}selected{% endif %}>ФИО</option>
+            <option value="temperature" {% if sort_field=='temperature' %}selected{% endif %}>Температура</option>
+            <option value="systolic" {% if sort_field=='systolic' %}selected{% endif %}>Систолическое давление</option>
+            <option value="diastolic" {% if sort_field=='diastolic' %}selected{% endif %}>Диастолическое давление</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" name="sort_order">
+            <option value="asc" {% if sort_order=='asc' %}selected{% endif %}>По возрастанию</option>
+            <option value="desc" {% if sort_order=='desc' or sort_field=='default' %}selected{% endif %}>По убыванию</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary w-100">Применить</button>
+        </div>
+      </div>
     </form>
-
-    <h3>Список измерений</h3>
-    {% if readings %}
+    
+    <!-- Главный список: для каждого пациента показывается только самое последнее измерение -->
+    {% if groups %}
       <table class="table table-bordered table-hover">
         <thead>
           <tr>
-            <th>Пациент</th>
+            <th>ФИО</th>
             <th>Температура (°C)</th>
-            <th>Систол.</th>
-            <th>Диастол.</th>
-            <th>Пульс</th>
-            <th>Насыщение (%)</th>
+            <th>Систолическое (мм рт. ст.)</th>
+            <th>Диастолическое (мм рт. ст.)</th>
             <th>Боль в груди</th>
-            <th>Дата</th>
+            <th>Дата (последняя)</th>
             <th>Предупреждения</th>
+            <th>Подробнее</th>
           </tr>
         </thead>
         <tbody>
-          {% for r in readings %}
+          {% for group in groups %}
+            {% set full_name = group[0] %}
+            {% set latest = group[1] %}
+            {% set history = group[2] %}
             <tr>
-              <td>{{ r.patient_name }}</td>
-              <td>{{ r.temperature }}</td>
-              <td>{{ r.systolic }}</td>
-              <td>{{ r.diastolic }}</td>
-              <td>{{ r.pulse }}</td>
-              <td>{{ r.oxygen_saturation }}</td>
-              <td>{{ 'Да' if r.chest_pain else 'Нет' }}</td>
-              <td>{{ r.timestamp }}</td>
+              <td>{{ full_name }}</td>
+              <td>{{ latest.temperature }}</td>
+              <td>{{ latest.systolic }}</td>
+              <td>{{ latest.diastolic }}</td>
+              <td>{{ 'Да' if latest.chest_pain else 'Нет' }}</td>
+              <td>{{ latest.timestamp }}</td>
               <td>
-                {% if r.alerts %}
-                  <ul class="mb-0">
-                    {% for alert in r.alerts %}
+                {% if latest.alerts %}
+                  <ul class="mb-0 list-unstyled">
+                    {% for alert in latest.alerts %}
                       <li class="text-danger small">{{ alert }}</li>
                     {% endfor %}
                   </ul>
                 {% else %}
                   <span class="text-success small">Норма</span>
                 {% endif %}
+              </td>
+              <td>
+                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modal{{ loop.index }}">
+                  Подробнее
+                </button>
+                <!-- Модальное окно с полной историей измерений -->
+                <div class="modal fade" id="modal{{ loop.index }}" tabindex="-1" aria-labelledby="modalLabel{{ loop.index }}" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel{{ loop.index }}">История измерений для {{ full_name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                      </div>
+                      <div class="modal-body">
+                        <table class="table table-bordered table-hover">
+                          <thead class="table-secondary">
+                            <tr>
+                              <th>Температура (°C)</th>
+                              <th>Систолическое</th>
+                              <th>Диастолическое</th>
+                              <th>Боль в груди</th>
+                              <th>Дата</th>
+                              <th>Предупреждения</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for m in history %}
+                              <tr>
+                                <td>{{ m.temperature }}</td>
+                                <td>{{ m.systolic }}</td>
+                                <td>{{ m.diastolic }}</td>
+                                <td>{{ 'Да' if m.chest_pain else 'Нет' }}</td>
+                                <td>{{ m.timestamp }}</td>
+                                <td>
+                                  {% if m.alerts %}
+                                    <ul class="mb-0 list-unstyled">
+                                      {% for a in m.alerts %}
+                                        <li class="text-danger small">{{ a }}</li>
+                                      {% endfor %}
+                                    </ul>
+                                  {% else %}
+                                    <span class="text-success small">Норма</span>
+                                  {% endif %}
+                                </td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Конец модального окна -->
               </td>
             </tr>
           {% endfor %}
@@ -92,5 +169,7 @@
       <p>Нет данных для отчёта.</p>
     {% endif %}
   </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

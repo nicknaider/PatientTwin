@@ -8,7 +8,7 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
     <div class="container">
-      <a class="navbar-brand" href="/">Мед. система</a>
+      <a class="navbar-brand" href="/">Медицинская система</a>
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link active" href="/schedule">Планирование</a></li>
         <li class="nav-item"><a class="nav-link" href="/readings">Измерения</a></li>
@@ -21,20 +21,20 @@
     <h2>Планирование мониторинга пациентов</h2>
     <form method="post" class="mb-4">
       <div class="mb-3">
-        <label for="patient_name" class="form-label">Имя пациента:</label>
-        <input type="text" id="patient_name" name="patient_name" class="form-control" required>
+        <label for="patient_name" class="form-label">ФИО</label>
+        <input type="text" id="patient_name" name="patient_name" class="form-control" placeholder="Введите ФИО" required>
       </div>
       <div class="mb-3">
-        <label for="disease" class="form-label">Заболевание:</label>
-        <input type="text" id="disease" name="disease" class="form-control" required>
+        <label for="disease" class="form-label">Заболевание</label>
+        <input type="text" id="disease" name="disease" class="form-control" placeholder="Введите заболевание" required>
       </div>
       <div class="mb-3">
-        <label for="frequency" class="form-label">Периодичность опроса (в днях):</label>
+        <label for="frequency" class="form-label">Периодичность опроса (в днях)</label>
         <input type="number" id="frequency" name="frequency" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label for="health_indicators" class="form-label">Показатели здоровья (кратко):</label>
-        <input type="text" id="health_indicators" name="health_indicators" class="form-control" placeholder="Напр., Давление, Температура">
+        <label for="health_indicators" class="form-label">Показатели здоровья (кратко)</label>
+        <input type="text" id="health_indicators" name="health_indicators" class="form-control" placeholder="Напр. Давление, Температура">
       </div>
       <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>
@@ -44,7 +44,7 @@
       <table class="table table-bordered table-hover">
         <thead>
           <tr>
-            <th>Пациент</th>
+            <th>ФИО</th>
             <th>Заболевание</th>
             <th>Периодичность</th>
             <th>Показатели</th>
@@ -53,10 +53,10 @@
         <tbody>
           {% for p in patients %}
             <tr>
-              <td>{{ p.name }}</td>
+              <td>{{ p.patient_name }}</td>
               <td>{{ p.disease }}</td>
-              <td>{{ p.checkup_interval }} дн.</td>
-              <td>{{ p.vital_signs }}</td>
+              <td>{{ p.frequency }} дн.</td>
+              <td>{{ p.health_indicators }}</td>
             </tr>
           {% endfor %}
         </tbody>
