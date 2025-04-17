@@ -1,104 +1,135 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Измерения</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
-    <div class="container">
-      <a class="navbar-brand" href="/">Медицинская система</a>
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="/schedule">Планирование</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/readings">Измерения</a></li>
-        <li class="nav-item"><a class="nav-link" href="/reports">Отчёты</a></li>
-      </ul>
+{% extends "base.html" %}
+{% block title %}Измерения | Медицинская система{% endblock %}
+{% block content %}
+<div class="content-block">
+  <h2>Ввод измерений</h2>
+  <form method="post" class="mb-4">
+    <!-- Первая строка: жизненно важные параметры -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label for="temperature" class="form-label">Температура</label>
+        <input type="number" step="0.1" id="temperature" name="temperature" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label for="systolic" class="form-label">Систол.</label>
+        <input type="number" id="systolic" name="systolic" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label for="diastolic" class="form-label">Диастол.</label>
+        <input type="number" id="diastolic" name="diastolic" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label for="overall_condition" class="form-label">Самочувствие</label>
+        <input type="text" id="overall_condition" name="overall_condition" class="form-control" placeholder="Например, слабость">
+      </div>
     </div>
-  </nav>
-  
-  <div class="container">
-    <h2>Ввод измерений</h2>
-    <form method="post" class="mb-4">
-      <div class="mb-3">
-        <label for="patient_name" class="form-label">ФИО</label>
-        <input type="text" id="patient_name" name="patient_name" class="form-control" placeholder="Введите ФИО" required>
+
+    <!-- Вторая строка: кашель + все симптомы, выравнено по нижнему краю -->
+    <div class="row g-3 mb-3 align-items-end">
+      <div class="col-md-3">
+        <label for="cough" class="form-label">Кашель</label>
+        <select id="cough" name="cough" class="form-select">
+          <option value="нет" selected>Нет</option>
+          <option value="сухой">Сухой</option>
+          <option value="влажный">Влажный</option>
+        </select>
       </div>
-      <div class="row">
-        <div class="col-md-3 mb-3">
-          <label for="temperature" class="form-label">Температура (°C)</label>
-          <input type="number" step="0.1" id="temperature" name="temperature" class="form-control" required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label for="systolic" class="form-label">Систолическое давление</label>
-          <input type="number" id="systolic" name="systolic" class="form-control" required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label for="diastolic" class="form-label">Диастолическое давление</label>
-          <input type="number" id="diastolic" name="diastolic" class="form-control" required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label class="form-label d-block">Боль в груди?</label>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="chest_pain" id="chest_pain_yes" value="yes" required>
-            <label class="form-check-label" for="chest_pain_yes">Да</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="chest_pain" id="chest_pain_no" value="no" required>
-            <label class="form-check-label" for="chest_pain_no">Нет</label>
-          </div>
+      <div class="col-md-3">
+        <label class="form-label">Боль в груди</label>
+        <div class="btn-group" role="group" aria-label="Chest pain">
+          <input type="radio" class="btn-check" name="chest_pain" id="chest_pain_no" value="no" checked>
+          <label class="btn btn-outline-secondary" for="chest_pain_no">Нет</label>
+          <input type="radio" class="btn-check" name="chest_pain" id="chest_pain_yes" value="yes">
+          <label class="btn btn-outline-secondary" for="chest_pain_yes">Есть</label>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary">Сохранить измерение</button>
-    </form>
-    
-    <h3>Список измерений</h3>
-    {% if readings %}
-      <table class="table table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>ФИО</th>
-            <th>Температура (°C)</th>
-            <th>Систолическое давление</th>
-            <th>Диастолическое давление</th>
-            <th>Боль в груди</th>
-            <th>Дата</th>
-            <th>Предупреждения</th>
-            <th>Удалить</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="col-md-3">
+        <label class="form-label">Боль в горле</label>
+        <div class="btn-group" role="group" aria-label="Sore throat">
+          <input type="radio" class="btn-check" name="sore_throat" id="sore_throat_no" value="no" checked>
+          <label class="btn btn-outline-secondary" for="sore_throat_no">Нет</label>
+          <input type="radio" class="btn-check" name="sore_throat" id="sore_throat_yes" value="yes">
+          <label class="btn btn-outline-secondary" for="sore_throat_yes">Есть</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Одышка</label>
+        <div class="btn-group" role="group" aria-label="Shortness of breath">
+          <input type="radio" class="btn-check" name="shortness_of_breath" id="sob_no" value="no" checked>
+          <label class="btn btn-outline-secondary" for="sob_no">Нет</label>
+          <input type="radio" class="btn-check" name="shortness_of_breath" id="sob_yes" value="yes">
+          <label class="btn btn-outline-secondary" for="sob_yes">Есть</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Третья строка: выбор пациента + кнопка -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-9">
+        <label for="patient_id" class="form-label">Пациент</label>
+        <select id="patient_id" name="patient_id" class="form-select" required>
+          <option value="">-- Выберите пациента --</option>
+          {% for p in patients %}
+            <option value="{{ p.id }}">{{ p.patient_name }} ({{ p.age }} л.)</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end justify-content-end">
+        <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+      </div>
+    </div>
+  </form>
+
+  <h3>Измерения</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead class="table-secondary text-center">
+        <tr>
+          <th>Пациент</th>
+          <th>Возраст</th>
+          <th>Темп.</th>
+          <th>Систол.</th>
+          <th>Диастол.</th>
+          <th>Самочувствие</th>
+          <th>Кашель</th>
+          <th>Горло</th>
+          <th>Одышка</th>
+          <th>Грудь</th>
+          <th>Дата</th>
+          <th>Предупр.</th>
+          <th style="width:100px">Удалить</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if readings %}
           {% for r in readings %}
-            <tr>
-              <td>{{ r.patient_name }}</td>
+            <tr class="align-middle text-center">
+              <td class="text-start">{{ r.patient_name }}</td>
+              <td>{{ r.age }}</td>
               <td>{{ r.temperature }}</td>
               <td>{{ r.systolic }}</td>
               <td>{{ r.diastolic }}</td>
-              <td>{{ 'Да' if r.chest_pain else 'Нет' }}</td>
+              <td>{{ r.overall_condition }}</td>
+              <td>{{ r.cough|capitalize }}</td>
+              <td>{{ 'Есть' if r.sore_throat else 'Нет' }}</td>
+              <td>{{ 'Есть' if r.shortness_of_breath else 'Нет' }}</td>
+              <td>{{ 'Есть' if r.chest_pain else 'Нет' }}</td>
               <td>{{ r.timestamp }}</td>
-              <td>
-                {% if r.alerts %}
-                  <ul class="mb-0">
-                    {% for alert in r.alerts %}
-                      <li class="text-danger small">{{ alert }}</li>
-                    {% endfor %}
-                  </ul>
-                {% else %}
-                  <span class="text-success small">Норма</span>
-                {% endif %}
+              <td class="text-danger small">
+                {% for alert in r.alerts %}{{ alert }}<br>{% endfor %}
               </td>
               <td>
-                <form method="post" action="{{ url_for('delete_reading', reading_id=r.id) }}">
-                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить измерение?');">Удалить</button>
+                <form method="post" action="{{ url_for('delete_reading', reading_id=r.id) }}" onsubmit="return confirm('Удалить?');">
+                  <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
                 </form>
               </td>
             </tr>
           {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>Нет введённых измерений.</p>
-    {% endif %}
+        {% else %}
+          <tr><td colspan="13">Нет измерений.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}
