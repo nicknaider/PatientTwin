@@ -1,8 +1,107 @@
 {% extends "base.html" %}
 {% block title %}Главная | Медицинская система{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .home-card {
+    border-radius: .5rem;
+    background-color: #fff;
+    transition: transform .2s, box-shadow .2s, border .2s;
+    border: 2px solid transparent;
+  }
+  .home-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    border-color: #0d6efd;
+  }
+  .home-card .fa-3x {
+    font-size: 3rem;
+    color: #0d6efd;
+  }
+  .home-card h5 {
+    margin-top: .75rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #000;
+  }
+  .home-grid {
+    max-width: 1000px;
+    margin: auto;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="content-block">
-  <h1>Добро пожаловать</h1>
-  <p>Выберите раздел в меню для работы с данными.</p>
+<div class="content-block text-center">
+  <h1 class="mb-3">Добро пожаловать</h1>
+  <p class="mb-5">Выберите нужный раздел:</p>
+
+  <div class="home-grid">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      <div class="col">
+        <a href="{{ url_for('schedule') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-calendar-alt fa-3x"></i>
+            <h5>Планирование</h5>
+          </div>
+        </a>
+      </div>
+
+      <div class="col">
+        <a href="{{ url_for('readings_view') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-stethoscope fa-3x"></i>
+            <h5>Измерения</h5>
+          </div>
+        </a>
+      </div>
+
+      <div class="col">
+        <a href="{{ url_for('reports') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-chart-line fa-3x"></i>
+            <h5>Отчёты</h5>
+          </div>
+        </a>
+      </div>
+
+      <div class="col">
+        <a href="{{ url_for('change_password') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-key fa-3x"></i>
+            <h5>Сменить пароль</h5>
+          </div>
+        </a>
+      </div>
+
+      {% if current_user.role == 'admin' %}
+      <div class="col">
+        <a href="{{ url_for('new_doctor') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-user-md fa-3x"></i>
+            <h5>Создать врача</h5>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="{{ url_for('references') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-sliders-h fa-3x"></i>
+            <h5>Референсы</h5>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="col">
+        <a href="{{ url_for('logout') }}" class="home-card d-block text-decoration-none p-4 h-100">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="fas fa-sign-out-alt fa-3x"></i>
+            <h5>Выход</h5>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

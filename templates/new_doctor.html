@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Создать врача | Медицинская система{% endblock %}
+
+{% block content %}
+<div class="content-block mx-auto" style="max-width:500px;">
+  <h2 class="text-center mb-4">Новый врач</h2>
+
+  <form method="post">
+    <div class="mb-3">
+      <label for="username" class="form-label">Логин врача</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        class="form-control"
+        placeholder="Введите логин врача"
+        required
+      >
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Создать</button>
+  </form>
+
+  {% if created_doctors %}
+    <hr class="my-4">
+    <h5>Созданные за сессию:</h5>
+    <div class="table-responsive mt-2">
+      <table class="table table-bordered table-hover">
+        <thead class="table-secondary">
+          <tr>
+            <th>Логин</th>
+            <th>Пароль</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in created_doctors %}
+            <tr>
+              <td>{{ doc.username }}</td>
+              <td><code>{{ doc.password }}</code></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

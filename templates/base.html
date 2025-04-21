@@ -3,62 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Медицинская система{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  >
+
   <style>
-    .container {
-      max-width: 1200px;
-      margin: auto;
-    }
-    .navbar {
-      background-color: #f8f9fa;
-    }
-    .nav-link {
-      color: #000 !important;
-    }
-    .nav-link.active {
-      color: #0d6efd !important;
-      font-weight: 600;
-    }
+    body { background-color: #f1f3f5; }
+    .container { max-width: 1200px; margin: auto; }
+    .navbar { background-color: #ffffff; }
+    .nav-link { color: #000 !important; margin-right: .75rem; }
+    .nav-link.active { color: #0d6efd !important; font-weight: 600; }
     .content-block {
-      background-color: #f8f9fa;
-      border-radius: 5px;
-      padding: 20px;
-      margin-bottom: 20px;
+      background-color: #ffffff;
+      border-radius: .5rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .table-responsive {
-      overflow-x: auto;
-    }
+    .table-responsive { overflow-x: auto; }
   </style>
   {% block extra_styles %}{% endblock %}
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg mb-3">
+
+  <nav class="navbar navbar-expand-lg mb-4">
     <div class="container">
-      <a class="navbar-brand" href="/">Медицинская система</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <a class="navbar-brand" href="{{ url_for('home') }}">Медицинская система</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
         <span class="navbar-toggler-icon"></span>
       </button>
+
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Главная</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.path == '/schedule' %}active{% endif %}" href="/schedule">Планирование</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.path == '/readings' %}active{% endif %}" href="/readings">Измерения</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.path == '/reports' %}active{% endif %}" href="/reports">Отчёты</a>
-          </li>
+        <ul class="navbar-nav ms-auto align-items-center">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.path=='/' %}active{% endif %}"
+                href="{{ url_for('home') }}"
+              >Главная</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if '/schedule' in request.path %}active{% endif %}"
+                href="{{ url_for('schedule') }}"
+              >Планирование</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if '/readings' in request.path %}active{% endif %}"
+                href="{{ url_for('readings_view') }}"
+              >Измерения</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if '/reports' in request.path %}active{% endif %}"
+                href="{{ url_for('reports') }}"
+              >Отчёты</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if '/change_password' in request.path %}active{% endif %}"
+                href="{{ url_for('change_password') }}"
+              >Сменить пароль</a>
+            </li>
+            {% if current_user.role == 'admin' %}
+              <li class="nav-item">
+                <a
+                  class="nav-link {% if '/admin/new_doctor' in request.path %}active{% endif %}"
+                  href="{{ url_for('new_doctor') }}"
+                >Создать врача</a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link {% if '/admin/references' in request.path %}active{% endif %}"
+                  href="{{ url_for('references') }}"
+                >Референсы</a>
+              </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">Выход</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.path=='/login' %}active{% endif %}"
+                href="{{ url_for('login') }}"
+              >Вход</a>
+            </li>
+          {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
   <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     {% block content %}{% endblock %}
   </div>
 

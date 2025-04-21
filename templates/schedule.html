@@ -1,30 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Планирование | Медицинская система{% endblock %}
+
 {% block content %}
 <div class="content-block">
   <h2>Планирование пациентов</h2>
   <form method="post" class="mb-4">
-    <div class="mb-3">
-      <label for="patient_name" class="form-label">ФИО</label>
-      <input type="text" id="patient_name" name="patient_name" class="form-control" placeholder="Введите ФИО" required>
+    <div class="row g-3 mb-3">
+      <div class="col-md-5">
+        <label for="patient_name" class="form-label">Пациент</label>
+        <input type="text" id="patient_name" name="patient_name" class="form-control" placeholder="Введите ФИО" required>
+      </div>
+      <div class="col-md-2">
+        <label for="age" class="form-label">Возраст</label>
+        <input type="number" id="age" name="age" class="form-control" placeholder="Введите возраст">
+      </div>
+      <div class="col-md-5">
+        <label for="disease" class="form-label">Заболевание</label>
+        <input type="text" id="disease" name="disease" class="form-control" placeholder="Введите заболевание" required>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="age" class="form-label">Возраст</label>
-      <input type="number" id="age" name="age" class="form-control" placeholder="Введите возраст">
+
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label for="frequency" class="form-label">Периодичность (дней)</label>
+        <input type="number" id="frequency" name="frequency" class="form-control" placeholder="Введите периодичность" required>
+      </div>
+      <div class="col-md-6">
+        <label for="health_indicators" class="form-label">Показатели</label>
+        <input type="text" id="health_indicators" name="health_indicators" class="form-control" placeholder="Например, Температура, Давление" required>
+      </div>
+      <div class="col-md-3 d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="disease" class="form-label">Заболевание</label>
-      <input type="text" id="disease" name="disease" class="form-control" placeholder="Введите заболевание" required>
-    </div>
-    <div class="mb-3">
-      <label for="frequency" class="form-label">Периодичность (дней)</label>
-      <input type="number" id="frequency" name="frequency" class="form-control" placeholder="Введите периодичность" required>
-    </div>
-    <div class="mb-3">
-      <label for="health_indicators" class="form-label">Показатели</label>
-      <input type="text" id="health_indicators" name="health_indicators" class="form-control" placeholder="Например, Температура, Давление" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Сохранить</button>
   </form>
   
   <h3>Список пациентов</h3>
@@ -32,27 +40,39 @@
     <table class="table table-bordered table-hover">
       <thead class="table-secondary">
         <tr>
-          <th>ФИО</th>
+          <th>Пациент</th>
           <th>Возраст</th>
           <th>Заболевание</th>
           <th>Периодичность</th>
           <th>Показатели</th>
+          <th>Действие</th>
         </tr>
       </thead>
       <tbody>
-      {% if patients %}
-        {% for p in patients %}
+        {% if patients %}
+          {% for p in patients %}
+            <tr>
+              <td class="text-start">{{ p.patient_name }}</td>
+              <td>{{ p.age }}</td>
+              <td>{{ p.disease }}</td>
+              <td>{{ p.frequency }}</td>
+              <td>{{ p.health_indicators }}</td>
+              <td>
+                <form method="post"
+                      action="{{ url_for('delete_patient', patient_id=p.id) }}"
+                      onsubmit="return confirm('Удалить пациента?');">
+                  <button type="submit" class="btn btn-danger btn-sm w-100">
+                    Удалить
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
           <tr>
-            <td>{{ p.patient_name }}</td>
-            <td>{{ p.age }}</td>
-            <td>{{ p.disease }}</td>
-            <td>{{ p.frequency }}</td>
-            <td>{{ p.health_indicators }}</td>
+            <td colspan="6" class="text-center">Нет добавленных пациентов.</td>
           </tr>
-        {% endfor %}
-      {% else %}
-        <tr><td colspan="5">Нет добавленных пациентов.</td></tr>
-      {% endif %}
+        {% endif %}
       </tbody>
     </table>
   </div>

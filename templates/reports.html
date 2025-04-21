@@ -1,63 +1,78 @@
 {% extends "base.html" %}
 {% block title %}Отчёты | Медицинская система{% endblock %}
+
 {% block extra_styles %}
 <style>
-  .reports-block {
-    background-color: #f8f9fa;
-    border-radius: 5px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
+  .table-responsive { overflow-x: auto; }
   table#reportTable th,
   table#reportTable td {
     text-align: center;
     vertical-align: middle;
+    padding: .5rem;
+    font-size: .9rem;
+    white-space: normal;
+    word-wrap: break-word;
   }
-  .btn-detail {
-    background-color: #0d6efd;
-    color: #fff;
-  }
-  .modal-header, .modal-footer {
-    background-color: #f8f9fa;
-  }
+  .cell-action-btn { margin: .25rem; }
+  .btn-detail   { background-color: #0d6efd; color: #fff; }
+  .btn-speak    { background-color: #28a745; color: #fff; }
+  .btn-settings { background-color: #6c757d; color: #fff; }
+  .modal-header,
+  .modal-footer { background-color: #f8f9fa; }
+  #segmentList { margin-bottom: 1rem; }
+  #segmentList .list-group-item { cursor: move; }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="reports-block">
+<div class="content-block">
   <h2>Отчёты</h2>
-  
-  <form method="get" action="/reports" class="mb-3">
+
+  <form method="get" action="{{ url_for('reports') }}" class="mb-4">
     <div class="row g-2">
       <div class="col-md-4">
-        <input type="text" name="search" class="form-control" placeholder="Поиск по ФИО" value="{{ search|default('') }}">
+        <input type="text" name="search" class="form-control"
+               placeholder="Поиск по ФИО" value="{{ search }}">
       </div>
       <div class="col-md-4">
         <div class="input-group">
           <span class="input-group-text">От</span>
-          <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+          <input type="date" name="start_date" class="form-control"
+                 value="{{ start_date }}">
         </div>
       </div>
       <div class="col-md-4">
         <div class="input-group">
           <span class="input-group-text">До</span>
-          <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+          <input type="date" name="end_date" class="form-control"
+                 value="{{ end_date }}">
         </div>
       </div>
     </div>
     <div class="row g-2 mt-2">
       <div class="col-md-4">
         <select class="form-select" name="sort_field">
-          <option value="default" {% if sort_field=='default' or sort_field=='' %}selected{% endif %}>По умолчанию (Дата)</option>
-          <option value="patient_name" {% if sort_field=='patient_name' %}selected{% endif %}>ФИО</option>
-          <option value="temperature" {% if sort_field=='temperature' %}selected{% endif %}>Температура</option>
-          <option value="systolic" {% if sort_field=='systolic' %}selected{% endif %}>Систол.</option>
-          <option value="diastolic" {% if sort_field=='diastolic' %}selected{% endif %}>Диастол.</option>
+          <option value="default" {% if sort_field=='default' %}selected{% endif %}>
+            По умолчанию (Дата)
+          </option>
+          <option value="patient_name" {% if sort_field=='patient_name' %}selected{% endif %}>
+            Пациент
+          </option>
+          <option value="temperature" {% if sort_field=='temperature' %}selected{% endif %}>
+            Температура
+          </option>
+          <option value="systolic" {% if sort_field=='systolic' %}selected{% endif %}>
+            Систолическое давление
+          </option>
+          <option value="diastolic" {% if sort_field=='diastolic' %}selected{% endif %}>
+            Диастолическое давление
+          </option>
         </select>
       </div>
       <div class="col-md-4">
         <select class="form-select" name="sort_order">
           <option value="asc" {% if sort_order=='asc' %}selected{% endif %}>По возрастанию</option>
-          <option value="desc" {% if sort_order=='desc' or sort_field=='default' %}selected{% endif %}>По убыванию</option>
+          <option value="desc" {% if sort_order=='desc' %}selected{% endif %}>По убыванию</option>
         </select>
       </div>
       <div class="col-md-4">
@@ -65,61 +80,81 @@
       </div>
     </div>
   </form>
-  
+
   <div class="table-responsive">
     {% if groups %}
       <table class="table table-bordered table-hover" id="reportTable">
         <thead class="table-secondary">
           <tr>
-            <th>ФИО</th>
-            <th>Возраст</th>
-            <th>Температура</th>
-            <th>Систол.</th>
-            <th>Диастол.</th>
-            <th>Самочувствие</th>
-            <th>Кашель</th>
-            <th>Горло</th>
-            <th>Одышка</th>
-            <th>Грудь</th>
-            <th>Дата</th>
-            <th>Предупр.</th>
-            <th>Подробнее</th>
+            <th>Пациент</th><th>Возраст</th><th>Темп.</th><th>Систол.</th><th>Диастол.</th>
+            <th>Самочувствие</th><th>Кашель</th><th>Горло</th><th>Одышка</th><th>Грудь</th>
+            <th>Дата</th><th>Предупр.</th><th style="width:160px">Действие</th>
           </tr>
         </thead>
         <tbody>
-          {% for group in groups %}
-            {% set full_name = group[0] %}
-            {% set latest = group[1] %}
-            {% set history = group[2] %}
-            <tr>
-              <td>{{ full_name }}</td>
-              <td>{{ latest.age }}</td>
-              <td>{{ latest.temperature }}</td>
-              <td>{{ latest.systolic }}</td>
-              <td>{{ latest.diastolic }}</td>
-              <td>{{ latest.overall_condition }}</td>
-              <td>{{ latest.cough|capitalize }}</td>
-              <td>{{ 'Есть' if latest.sore_throat else 'Нет' }}</td>
-              <td>{{ 'Есть' if latest.shortness_of_breath else 'Нет' }}</td>
-              <td>{{ 'Есть' if latest.chest_pain else 'Нет' }}</td>
-              <td>{{ latest.timestamp }}</td>
-              <td>
-                {% if latest.alerts %}
-                  <ul class="list-unstyled mb-0">
-                    {% for alert in latest.alerts %}
-                      <li class="text-danger small">{{ alert }}</li>
-                    {% endfor %}
-                  </ul>
-                {% else %}
-                  <span class="text-success small">Норма</span>
-                {% endif %}
-              </td>
-              <td>
-                <button type="button" class="btn btn-sm btn-detail" data-bs-toggle="modal" data-bs-target="#modal{{ loop.index0 }}">
+          {% for full_name, latest, history in groups %}
+          <tr class="align-middle">
+            <td class="text-start">{{ full_name }}</td>
+            <td>{{ latest.age if latest.age is not none else 'Неизв.' }}</td>
+            <td>{{ latest.temperature if latest.temperature is not none else 'Неизв.' }}</td>
+            <td>{{ latest.systolic if latest.systolic is not none else 'Неизв.' }}</td>
+            <td>{{ latest.diastolic if latest.diastolic is not none else 'Неизв.' }}</td>
+            <td>{{ latest.overall_condition or 'Неизв.' }}</td>
+            <td>{{ latest.cough|capitalize or 'Неизв.' }}</td>
+            <td>
+              {% if latest.sore_throat is none %}Неизв.
+              {% elif latest.sore_throat %}Есть
+              {% else %}Нет{% endif %}
+            </td>
+            <td>
+              {% if latest.shortness_of_breath is none %}Неизв.
+              {% elif latest.shortness_of_breath %}Есть
+              {% else %}Нет{% endif %}
+            </td>
+            <td>
+              {% if latest.chest_pain is none %}Неизв.
+              {% elif latest.chest_pain %}Есть
+              {% else %}Нет{% endif %}
+            </td>
+            <td>{{ latest.timestamp|fmt_dt }}</td>
+            <td class="text-danger small">
+              {% for alert in latest.alerts %}{{ alert }}<br>{% endfor %}
+            </td>
+            <td>
+              <div class="d-flex flex-column">
+                <button type="button"
+                        class="btn btn-detail btn-sm w-100 mb-1"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal{{ loop.index0 }}">
                   Подробнее
                 </button>
-              </td>
-            </tr>
+                <div class="d-flex">
+                  <button type="button"
+                          class="btn btn-speak btn-sm flex-grow-1 speak-btn"
+                          data-patient='{{ {
+                            "full_name": full_name,
+                            "age": latest.age if latest.age is not none else none,
+                            "temperature": latest.temperature if latest.temperature is not none else none,
+                            "systolic": latest.systolic if latest.systolic is not none else none,
+                            "diastolic": latest.diastolic if latest.diastolic is not none else none,
+                            "condition": latest.overall_condition or none,
+                            "cough": latest.cough|capitalize or none,
+                            "throat": latest.sore_throat if latest.sore_throat is not none else none,
+                            "breath": latest.shortness_of_breath if latest.shortness_of_breath is not none else none,
+                            "chest": latest.chest_pain if latest.chest_pain is not none else none,
+                            "timestamp": latest.timestamp|fmt_dt,
+                            "alerts": latest.alerts
+                          }|tojson|safe }}'>
+                    Озвучить
+                  </button>
+                  <button type="button"
+                          class="btn btn-settings btn-sm ms-1 settings-btn">
+                    <i class="fas fa-cog"></i>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -127,79 +162,315 @@
       <p>Нет данных для отчёта.</p>
     {% endif %}
   </div>
-  
-  {% if groups %}
-    {% for group in groups %}
-      {% set full_name = group[0] %}
-      {% set history = group[2] %}
-      <div class="modal fade" id="modal{{ loop.index0 }}" tabindex="-1" aria-labelledby="modalLabel{{ loop.index0 }}" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalLabel{{ loop.index0 }}">История измерений – {{ full_name }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body">
-              <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                  <thead class="table-secondary">
-                    <tr>
-                      <th>Возраст</th>
-                      <th>Температура</th>
-                      <th>Систол.</th>
-                      <th>Диастол.</th>
-                      <th>Самочувствие</th>
-                      <th>Кашель</th>
-                      <th>Горло</th>
-                      <th>Одышка</th>
-                      <th>Грудь</th>
-                      <th>Дата</th>
-                      <th>Предупр.</th>
-                      <th>Удалить</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for m in history %}
-                      <tr>
-                        <td>{{ m.age }}</td>
-                        <td>{{ m.temperature }}</td>
-                        <td>{{ m.systolic }}</td>
-                        <td>{{ m.diastolic }}</td>
-                        <td>{{ m.overall_condition }}</td>
-                        <td>{{ m.cough|capitalize }}</td>
-                        <td>{{ 'Есть' if m.sore_throat else 'Нет' }}</td>
-                        <td>{{ 'Есть' if m.shortness_of_breath else 'Нет' }}</td>
-                        <td>{{ 'Есть' if m.chest_pain else 'Нет' }}</td>
-                        <td>{{ m.timestamp }}</td>
-                        <td>
-                          {% if m.alerts %}
-                            <ul class="list-unstyled mb-0">
-                              {% for a in m.alerts %}
-                                <li class="text-danger small">{{ a }}</li>
-                              {% endfor %}
-                            </ul>
-                          {% else %}
-                            <span class="text-success small">Норма</span>
-                          {% endif %}
-                        </td>
-                        <td>
-                          <form method="post" action="{{ url_for('delete_reading', reading_id=m.id) }}" onsubmit="return confirm('Удалить запись?');">
-                            <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-                          </form>
-                        </td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            </div>
+
+  {% for full_name, latest, history in groups %}
+  <div class="modal fade" id="modal{{ loop.index0 }}" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">История измерений – {{ full_name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-4">
+            <canvas id="historyChart{{ loop.index0 }}" height="200"></canvas>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="table-secondary text-center">
+                <tr>
+                  <th>Возраст</th><th>Темп.</th><th>Систол.</th><th>Диастол.</th>
+                  <th>Самочувствие</th><th>Кашель</th><th>Горло</th><th>Одышка</th><th>Грудь</th>
+                  <th>Дата</th><th>Предупр.</th><th>Действие</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in history %}
+                <tr class="text-center">
+                  <td>{{ m.age if m.age is not none else 'Неизв.' }}</td>
+                  <td>{{ m.temperature if m.temperature is not none else 'Неизв.' }}</td>
+                  <td>{{ m.systolic if m.systolic is not none else 'Неизв.' }}</td>
+                  <td>{{ m.diastolic if m.diastolic is not none else 'Неизв.' }}</td>
+                  <td>{{ m.overall_condition or 'Неизв.' }}</td>
+                  <td>{{ m.cough|capitalize or 'Неизв.' }}</td>
+                  <td>
+                    {% if m.sore_throat is none %}Неизв.
+                    {% elif m.sore_throat %}Есть
+                    {% else %}Нет{% endif %}
+                  </td>
+                  <td>
+                    {% if m.shortness_of_breath is none %}Неизв.
+                    {% elif m.shortness_of_breath %}Есть
+                    {% else %}Нет{% endif %}
+                  </td>
+                  <td>
+                    {% if m.chest_pain is none %}Неизв.
+                    {% elif m.chest_pain %}Есть
+                    {% else %}Нет{% endif %}
+                  </td>
+                  <td>{{ m.timestamp|fmt_dt }}</td>
+                  <td class="text-danger small">
+                    {% for a in m.alerts %}{{ a }}<br>{% endfor %}
+                  </td>
+                  <td>
+                    <form method="post"
+                          action="{{ url_for('delete_reading', reading_id=m.id) }}"
+                          onsubmit="return confirm('Удалить запись?');">
+                      <button class="btn btn-danger btn-sm w-100">Удалить</button>
+                    </form>
+                    <div class="d-flex mt-1">
+                      <button type="button"
+                              class="btn btn-speak btn-sm flex-grow-1 speak-btn"
+                              data-patient='{{ {
+                                "full_name": full_name,
+                                "age": m.age if m.age is not none else none,
+                                "temperature": m.temperature if m.temperature is not none else none,
+                                "systolic": m.systolic if m.systolic is not none else none,
+                                "diastolic": m.diastolic if m.diastolic is not none else none,
+                                "condition": m.overall_condition or none,
+                                "cough": m.cough|capitalize or none,
+                                "throat": m.sore_throat if m.sore_throat is not none else none,
+                                "breath": m.shortness_of_breath if m.shortness_of_breath is not none else none,
+                                "chest": m.chest_pain if m.chest_pain is not none else none,
+                                "timestamp": m.timestamp|fmt_dt,
+                                "alerts": m.alerts
+                              }|tojson|safe }}'>
+                        Озвучить
+                      </button>
+                      <button type="button"
+                              class="btn btn-settings btn-sm ms-1 settings-btn">
+                        <i class="fas fa-cog"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <div>
+            <a href="{{ url_for('export_report', patient_id=history[0].patient_id, format='csv') }}"
+               class="btn btn-outline-primary me-2">
+              Экспорт CSV
+            </a>
+            <a href="{{ url_for('export_report', patient_id=history[0].patient_id, format='excel') }}"
+               class="btn btn-outline-success">
+              Экспорт Excel
+            </a>
+          </div>
+          <button class="btn btn-secondary" data-bs-dismiss="modal" style="width:100px;">
+            Закрыть
+          </button>
+        </div>
       </div>
-    {% endfor %}
-  {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="modal fade" id="speakSettingsModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Настройка озвучки</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul id="segmentList" class="list-group">
+          <li class="list-group-item" data-key="full_name">Пациент</li>
+          <li class="list-group-item" data-key="age">Возраст</li>
+          <li class="list-group-item" data-key="temperature">Температура</li>
+          <li class="list-group-item" data-key="systolic">Систолическое давление</li>
+          <li class="list-group-item" data-key="diastolic">Диастолическое давление</li>
+          <li class="list-group-item" data-key="condition">Самочувствие</li>
+          <li class="list-group-item" data-key="cough">Кашель</li>
+          <li class="list-group-item" data-key="throat">Боль в горле</li>
+          <li class="list-group-item" data-key="breath">Одышка</li>
+          <li class="list-group-item" data-key="chest">Боль в груди</li>
+          <li class="list-group-item" data-key="timestamp">Дата</li>
+          <li class="list-group-item" data-key="alerts">Предупреждения</li>
+        </ul>
+        <div class="mb-3">
+          <label class="form-label">Скорость</label>
+          <input id="rateRange" type="range" class="form-range" min="0.5" max="2" step="0.1" value="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="applySettingsBtn" class="btn btn-primary">Сохранить</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+      </div>
+    </div></div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+function numberToWords(n) {
+  const ones = ["ноль","один","два","три","четыре","пять","шесть","семь","восемь","девять",
+                "десять","одиннадцать","двенадцать","тринадцать","четырнадцать","пятнадцать",
+                "шестнадцать","семнадцать","восемнадцать","девятнадцать"];
+  const tens = ["","","двадцать","тридцать","сорок","пятьдесят","шестьдесят","семьдесят",
+                "восемьдесят","девяносто"];
+  if (n < 20) return ones[n];
+  if (n < 100) {
+    const t = Math.floor(n/10), r = n % 10;
+    return tens[t] + (r ? " " + ones[r] : "");
+  }
+  return n.toString();
+}
+
+function transformAlert(str) {
+  let s = str.replace(/[()]/g, "");
+  s = s.replace(/(\d+(?:\.\d+)?)\s*[–-]\s*(\d+(?:\.\d+)?)/g, (m,a,b) => {
+    const fmt = x => x.includes(".")
+      ? x.split(".").map(num => numberToWords(+num)).join(" и ")
+      : numberToWords(+x);
+    return fmt(a) + " до " + fmt(b);
+  });
+  return s.replace(/\d+(?:\.\d+)?/g, m => {
+    if (m.includes(".")) {
+      const [i,f] = m.split(".");
+      return numberToWords(+i) + " и " + numberToWords(+f);
+    }
+    return numberToWords(+m);
+  });
+}
+
+function formatDate(ts) {
+  const [datePart,timePart] = ts.split(" ");
+  const [year,month,day] = datePart.split("-").map(Number);
+  const [hour,minute] = timePart.split(":").map(Number);
+  const months = ["января","февраля","марта","апреля","мая","июня",
+                  "июля","августа","сентября","октября","ноября","декабря"];
+  return `${day} ${months[month-1]} ${year} года, ${hour} часов ${minute} минут`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const synth = window.speechSynthesis;
+  let voices = [];
+
+  const defaultOrder = ["full_name","age","temperature","systolic","diastolic",
+                        "condition","cough","throat","breath","chest","timestamp","alerts"];
+  const labels = {
+    full_name:"Пациент", age:"Возраст", temperature:"Температура",
+    systolic:"Систолическое давление", diastolic:"Диастолическое давление",
+    condition:"Самочувствие", cough:"Кашель", throat:"Боль в горле",
+    breath:"Одышка", chest:"Боль в груди", timestamp:"Дата", alerts:"Предупреждения"
+  };
+  let settings = { order: [...defaultOrder], rate:1 };
+
+  function loadVoicesAndWarm() {
+    voices = synth.getVoices().filter(v=>v.lang.startsWith("ru"));
+    if (voices.length) {
+      const w = new SpeechSynthesisUtterance(" ");
+      w.volume=0.01; w.lang="ru-RU"; w.voice=voices[0];
+      synth.speak(w);
+    } else setTimeout(loadVoicesAndWarm,50);
+  }
+  loadVoicesAndWarm();
+
+  new Sortable(document.getElementById("segmentList"),{animation:150});
+  document.querySelectorAll(".settings-btn").forEach(btn=>
+    btn.addEventListener("click",()=>
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById("speakSettingsModal")
+      ).show()
+    )
+  );
+  document.getElementById("applySettingsBtn").addEventListener("click",()=>{
+    settings.order = Array.from(
+      document.querySelectorAll("#segmentList .list-group-item")
+    ).map(li=>li.dataset.key);
+    settings.rate = parseFloat(document.getElementById("rateRange").value);
+    bootstrap.Modal.getInstance(
+      document.getElementById("speakSettingsModal")
+    ).hide();
+  });
+
+  function speak(data, btn) {
+    if (synth.speaking) synth.cancel();
+    btn.textContent = "Остановить";
+
+    const parts = settings.order.flatMap(key => {
+      if (key==="alerts") {
+        return data.alerts.length
+          ? data.alerts.map(a=>"Предупреждения: "+transformAlert(a))
+          : ["Предупреждений нет"];
+      }
+      let raw = data[key], val;
+      if (raw==null) val="Неизвестно";
+      else if (typeof raw==="boolean") val = raw ? "Есть" : "Нет";
+      else val = raw;
+
+      if (key==="age"&&typeof data.age==="number") val=`${data.age} лет`;
+      if (key==="temperature"&&typeof data.temperature==="number"){
+        const s = data.temperature.toString();
+        val = s.includes(".") ? s.split(".").join(" и ") : s;
+      }
+      if ((key==="systolic"||key==="diastolic")&&typeof data[key]==="number") {
+        val = numberToWords(data[key]);
+      }
+      if (key==="timestamp") val = formatDate(data.timestamp);
+
+      return [`${labels[key]} ${val}`];
+    });
+
+    const u = new SpeechSynthesisUtterance(parts.join(". "));
+    u.lang="ru-RU"; if(voices[0]) u.voice=voices[0];
+    u.rate=settings.rate;
+    u.onend = ()=> btn.textContent="Озвучить";
+    synth.speak(u);
+    return u;
+  }
+
+  document.querySelectorAll(".speak-btn").forEach(btn=>{
+    let current=null;
+    btn.addEventListener("click",()=>{
+      const data = JSON.parse(btn.getAttribute("data-patient"));
+      if (current && synth.speaking) {
+        synth.cancel(); current=null; btn.textContent="Озвучить";
+      } else {
+        current = speak(data, btn);
+      }
+    });
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% for full_name, latest, history in groups %}
+  var ctx{{ loop.index0 }} = document.getElementById('historyChart{{ loop.index0 }}').getContext('2d');
+  fetch('{{ url_for("report_history", patient_id=history[0].patient_id) }}')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var labels = data.map(function(d){ return new Date(d.timestamp).toLocaleString(); });
+      var tempData = data.map(function(d){ return d.temperature; });
+      var sysData  = data.map(function(d){ return d.systolic; });
+      var diaData  = data.map(function(d){ return d.diastolic; });
+      new Chart(ctx{{ loop.index0 }}, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Температура',   data: tempData, fill: false, tension: 0.1 },
+            { label: 'Систолическое',  data: sysData,   fill: false, tension: 0.1 },
+            { label: 'Диастолическое', data: diaData,   fill: false, tension: 0.1 }
+          ]
+        },
+        options: {
+          plugins: { legend: { position: 'bottom' } },
+          scales: {
+            x: { title: { display: true, text: 'Дата и время' } },
+            y: { title: { display: true, text: 'Значение' } }
+          }
+        }
+      });
+    });
+  {% endfor %}
+});
+</script>
 {% endblock %}
